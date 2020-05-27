@@ -1,8 +1,6 @@
 # flask-ecomm
 An eCommerce App built with Flask, Jinja, SQLite, jQuery and Bootstrap
 
-This app was my CS50x final project.
-
 The app loads a gallery of soccer shirts that includes: image, description, price, and a small form to add item to cart. The shirt info is stored in a SQLite database and is displayed using Bootstrap's card class.
 
 <img src="https://66.media.tumblr.com/186f34c7243200b24693260946874509/tumblr_pkaxbfmFxT1qz7ur9o1_1280.png" />
@@ -37,7 +35,6 @@ If you want to see the app in action, fork the repository to your own computer a
 This assumes you have Python, Flask and SQLite installed in your computer, as well as a link to Bootstrap and the following modules necessary to run application.py installed:
 
 <code>
-from cs50 import SQL</code><br />
 <code>from flask_session import Session</code><br />
 <code>from flask import Flask, render_template, redirect, request, session, jsonify</code><br />
 <code>from datetime import datetime</code>
