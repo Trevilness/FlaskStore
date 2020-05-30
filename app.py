@@ -25,10 +25,10 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 db = SQLAlchemy()
 db.init_app(app)
 app.config['SECRET_KEY'] = 'mysecret'
-app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///C:\\Users\\Владислав\\PycharmProjects\\flask-ecomm\\data.sqlite'
+app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///C:\\Users\\miair\\PycharmProjects\\FlaskStore\\data.sqlite'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_BINDS"] = {'data': 'sqlite:////C:\\Users\\Владислав\\PycharmProjects\\flask-ecomm\\data.sqlite'}
-engine = create_engine('sqlite:///C:\\Users\\Владислав\\PycharmProjects\\flask-ecomm\\data.sqlite')
+app.config["SQLALCHEMY_BINDS"] = {'data': 'sqlite:///C:\\Users\\miair\\PycharmProjects\\FlaskStore\\data.sqlite'}
+engine = create_engine('sqlite:///C:\\Users\\miair\\PycharmProjects\\FlaskStore\\data.sqlite')
 
 
 
