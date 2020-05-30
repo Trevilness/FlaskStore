@@ -6,6 +6,9 @@ from flask import Flask, render_template, redirect, request, session, jsonify
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
+from flask_login import UserMixin
 
 # # Instantiate Flask object named app
 app = Flask(__name__)
@@ -21,11 +24,12 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 # db = sqlite3.connect('data.sqlite')
 db = SQLAlchemy()
 db.init_app(app)
+app.config['SECRET_KEY'] = 'mysecret'
 app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///C:\\Users\\Владислав\\PycharmProjects\\flask-ecomm\\data.sqlite'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_BINDS"] = {'data': 'sqlite:////C:\\Users\\Владислав\\PycharmProjects\\flask-ecomm\\data.sqlite'}
 engine = create_engine('sqlite:///C:\\Users\\Владислав\\PycharmProjects\\flask-ecomm\\data.sqlite')
-print(app.config)
+
 
 
 @app.route("/")
@@ -97,7 +101,7 @@ def update():
         id = int(request.args.get('id'))
         engine.execute("DELETE FROM cart WHERE id = :id", id=id)
         # Select info of selected shirt from database
-        goods = engine.execute("SELECT * FROM shirts WHERE id = :id", id=id)
+        goods = engine.execute("SELECT * FROM shirts WHERE id = :id", id=id).fetchall()
         # Extract values from selected shirt record
         # Check if shirt is on sale to determine price
         if(goods[0]["onSale"] == 1):
@@ -109,7 +113,7 @@ def update():
         subTotal = qty * price
         # Insert selected shirt into shopping cart
         engine.execute("INSERT INTO cart (id, qty, team, image, price, subTotal) VALUES (:id, :qty, :team, :image, :price, :subTotal)", id=id, qty=qty, team=team, image=image, price=price, subTotal=subTotal)
-        shoppingCart = engine.execute("SELECT team, image, SUM(qty), SUM(subTotal), price, id FROM cart GROUP BY team")
+        shoppingCart = engine.execute("SELECT team, image, SUM(qty), SUM(subTotal), price, id FROM cart GROUP BY team").fetchall()
         shopLen = len(shoppingCart)
         # Rebuild shopping cart
         for i in range(shopLen):
@@ -153,20 +157,29 @@ def filter():
     # Render filtered view
     return render_template ( "index.html", shirts=shirts, shoppingCart=shoppingCart, shirtsLen=shirtsLen, shopLen=shopLen, total=total, totItems=totItems, display=display)
 
+@app.route("/paying/")
+def shipping():
+    return redirect('paying.html')
 
 @app.route("/checkout/")
 def checkout():
     order = engine.execute("SELECT * from cart")
     # Update purchase history of current customer
-    for item in order:
-        engine.execute("INSERT INTO purchases (uid, id, team, image, quantity) VALUES(:uid, :id, :team, :image, :quantity)", uid=session["uid"], id=item["id"], team=item["team"], image=item["image"], quantity=item["qty"] ).fetchall()
+    #for item in order:
+    #    engine.execute("INSERT INTO purchases (uid, id, team, image, quantity) VALUES(:uid, :id, :team, :image, :quantity)", uid=session["uid"], id=item["id"], team=item["team"], image=item["image"], quantity=item["qty"] )
     # Clear shopping cart
-    engine.execute("DELETE from cart")
+    # engine.execute("DELETE from cart")
     shoppingCart = []
-    shopLen = len(shoppingCart)
     totItems, total, display = 0, 0, 0
+    shopLen = len(shoppingCart)
+    shoppingCart = engine.execute("SELECT team, image, SUM(qty), SUM(subTotal), price, id FROM cart GROUP BY team").fetchall()
+    shopLen = len(shoppingCart)
+    for i in range(shopLen):
+        total += shoppingCart[i]["SUM(subTotal)"]
+        totItems += shoppingCart[i]["SUM(qty)"]
     # Redirect to home page
-    return redirect('/')
+    total += 15
+    return render_template ('shipping.html', shoppingCart=shoppingCart, shopLen=shopLen, total=total, totItems=totItems, display=display, session=session )
 
 
 @app.route("/remove/", methods=["GET"])
@@ -275,7 +288,7 @@ def cart():
         # Clear shopping cart variables
         totItems, total, display = 0, 0, 0
         # Grab info currently in database
-        shoppingCart = engine.execute("SELECT team, image, SUM(qty), SUM(subTotal), price, id FROM cart GROUP BY team")
+        shoppingCart = engine.execute("SELECT team, image, SUM(qty), SUM(subTotal), price, id FROM cart GROUP BY team").fetchall()
         # Get variable values
         shopLen = len(shoppingCart)
         for i in range(shopLen):
