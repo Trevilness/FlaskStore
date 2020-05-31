@@ -52,6 +52,14 @@ def index():
         return render_template ("index.html", shoppingCart=shoppingCart, shirts=shirts, shopLen=shopLen, shirtsLen=shirtsLen, total=total, totItems=totItems, display=display, session=session )
     return render_template ("index.html", shirts=shirts, shoppingCart=shoppingCart, shirtsLen=shirtsLen, shopLen=shopLen, total=total, totItems=totItems, display=display)
 
+@app.route("/account/")
+def account():
+    user = session['user']
+    info = engine.execute("SELECT * from users where username = :user", user=user).fetchall()[1:]
+    mail = info[5]
+    fname = info[3]
+    lname = info[4]
+    return render_template("account.html", user=user, mail=mail, fname=fname, lname=lname)
 
 @app.route("/buy/")
 def buy():
@@ -157,13 +165,28 @@ def filter():
     # Render filtered view
     return render_template ( "index.html", shirts=shirts, shoppingCart=shoppingCart, shirtsLen=shirtsLen, shopLen=shopLen, total=total, totItems=totItems, display=display)
 
-@app.route("/paying/")
+@app.route("/change_info", methods=['POST'])
+def change():
+    mail = request.form["mail"]
+    fname = request.form["fname"]
+    lname = request.form["lname"]
+
+
+@app.route("/paying/", methods=['GET', 'POST'])
 def shipping():
-    return redirect('paying.html')
+    order = engine.execute("SELECT * from cart").fetchall()
+    for item in order:
+        engine.execute("INSERT INTO purchases (uid, id, team, image, quantity) VALUES(:uid, :id, :team, :image, :quantity)", uid=session["uid"], id=item["id"], team=item["team"], image=item["image"], quantity=item["qty"] )
+    engine.execute("DELETE from cart")
+    shoppingCart = []
+    shopLen = len(shoppingCart)
+    totItems, total, display = 0, 0, 0
+    return render_template("paying.html", shoppingCart=shoppingCart, shopLen=shopLen, total=total, totItems=totItems, display=display, session=session )
 
 @app.route("/checkout/")
 def checkout():
     order = engine.execute("SELECT * from cart")
+    delivery_cost = 20
     # Update purchase history of current customer
     #for item in order:
     #    engine.execute("INSERT INTO purchases (uid, id, team, image, quantity) VALUES(:uid, :id, :team, :image, :quantity)", uid=session["uid"], id=item["id"], team=item["team"], image=item["image"], quantity=item["qty"] )
@@ -178,7 +201,7 @@ def checkout():
         total += shoppingCart[i]["SUM(subTotal)"]
         totItems += shoppingCart[i]["SUM(qty)"]
     # Redirect to home page
-    total += 15
+    total += delivery_cost
     return render_template ('shipping.html', shoppingCart=shoppingCart, shopLen=shopLen, total=total, totItems=totItems, display=display, session=session )
 
 
@@ -271,7 +294,7 @@ def registration():
     lname = request.form["lname"]
     email = request.form["email"]
     # See if username already in the database
-    rows = engine.execute( "SELECT * FROM users WHERE username = :username ", username = username )
+    rows = engine.execute( "SELECT * FROM users WHERE username = :username ", username = username ).fetchall()
     # If username already exists, alert user
     if len( rows ) > 0:
         return render_template ( "new.html", msg="Username already exists!" )

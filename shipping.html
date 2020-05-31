@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}
+Pesci Inc. Store - Home
+{% endblock %}
+
+{% block body %}
+<!-- Main Store Body -->
+  <div aria-hidden="true">
+    <div>
+      <div>
+        <div>
+          <h5 class="modal-title" id="exampleModalLongTitle">Shopping Cart</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          </button>
+        </div>
+        <div>
+          <div id="shoppingCart">
+            <div class="container">
+              <div class="row">
+                <div class="col-sm">
+                  <table class="table table-sm">
+                    <thead>
+                      <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Item</th>
+                        <th scope="col">Team</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Unit Price</th>
+                        <th scope="col"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    <!-- For Each shirt -->
+                    {% if shopLen != 0 %}
+                    {% for i in range(shopLen) %}
+                      <tr>
+                        <th scope="row">{{ i + 1 }}</th>
+                        <td><img src="/static/img/{{ shoppingCart[i]["image"] }}" width="30px" alt="{{ shoppingCart[i]["team"] }}" /></td>
+                        <td>{{ shoppingCart[i]["team"] }}</td>
+                        <td>{{ '${:,.2f}'.format(shoppingCart[i]["price"]) }}</td>
+                        <td>{{ '${:,.2f}'.format(shoppingCart[i]['SUM(subTotal)']) }}</td>
+                      </tr>
+                    </tbody>
+                    {% endfor %}
+                    <tfoot>
+                      <tr>
+                        <td colSpan="7">
+                            <br> Delivery: 20$
+                            <br>Total: {{ '${:,.2f}'.format(total) }}
+                          <form class="modal-footer">
+                              </form>
+                              <form action="/paying" method="post">
+                                  <p><input type="text" name="City" autofocus placeholder="City"></p>
+                                  <p><input type="text" name="Address" placeholder="Address"></p>
+                                  <p><input type="submit" value="Pay"></p>
+                              </form>
+                          </div>
+                        </td>
+                      </tr>
+                    </tfoot>
+                    {% else %}
+                      <tr>
+                        <td colSpan="7"><h3>Your cart is empty :\</h3></td>
+                      </tr>
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td colSpan="7">Get some shirts now!<br />
+                          <div>
+                            <a href="/"><button type="button" class="btn btn-secondary" data-dismiss="modal">Continue Shopping</button></a>
+                          </div>
+                        </td>
+                      </tr>
+                    </tfoot>
+                    {% endif %}
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+    </div>
+  </main>
+
+{% endblock %}
