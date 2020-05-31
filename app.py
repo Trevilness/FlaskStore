@@ -1,5 +1,3 @@
-#from cs50 import SQL
-#import sqlite3
 import os
 from flask_session import Session
 from flask import Flask, render_template, redirect, request, session, jsonify
@@ -9,6 +7,8 @@ from sqlalchemy import create_engine
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_login import UserMixin
+from hashlib import blake2b
+import os
 
 # # Instantiate Flask object named app
 app = Flask(__name__)
@@ -31,6 +31,18 @@ app.config["SQLALCHEMY_BINDS"] = {'data': 'sqlite:///C:\\Users\\miair\\PycharmPr
 engine = create_engine('sqlite:///C:\\Users\\miair\\PycharmProjects\\FlaskStore\\data.sqlite')
 
 
+def check_password(login, password):
+    pass_math = False
+    salt = 1
+    password = "123"
+    check_pwd = blake2b(password.encode(), salt=salt).hexdigest()
+
+
+def hash_password(password):
+    salt = os.urandom(blake2b.SALT_SIZE)
+    pwd = blake2b(password.encode(), salt=salt).hexdigest()
+    return [pwd, salt]
+
 
 @app.route("/")
 def index():
@@ -49,8 +61,8 @@ def index():
             totItems += shoppingCart[i]["SUM(qty)"]
         shirts = engine.execute("SELECT * FROM shirts ORDER BY team ASC").fetchall()
         shirtsLen = len(shirts)
-        return render_template ("index.html", shoppingCart=shoppingCart, shirts=shirts, shopLen=shopLen, shirtsLen=shirtsLen, total=total, totItems=totItems, display=display, session=session )
-    return render_template ("index.html", shirts=shirts, shoppingCart=shoppingCart, shirtsLen=shirtsLen, shopLen=shopLen, total=total, totItems=totItems, display=display)
+        return render_template("index.html", shoppingCart=shoppingCart, shirts=shirts, shopLen=shopLen, shirtsLen=shirtsLen, total=total, totItems=totItems, display=display, session=session )
+    return render_template("index.html", shirts=shirts, shoppingCart=shoppingCart, shirtsLen=shirtsLen, shopLen=shopLen, total=total, totItems=totItems, display=display)
 
 
 @app.route("/buy/")
@@ -179,7 +191,7 @@ def checkout():
         totItems += shoppingCart[i]["SUM(qty)"]
     # Redirect to home page
     total += 15
-    return render_template ('shipping.html', shoppingCart=shoppingCart, shopLen=shopLen, total=total, totItems=totItems, display=display, session=session )
+    return render_template('shipping.html', shoppingCart=shoppingCart, shopLen=shopLen, total=total, totItems=totItems, display=display, session=session)
 
 
 @app.route("/remove/", methods=["GET"])
@@ -207,13 +219,13 @@ def login():
     return render_template("login.html")
 
 
-@app.route("/new/", methods=["GET"])
+@app.route("/register/", methods=["GET"])
 def new():
     # Render log in page
-    return render_template("new.html")
+    return render_template("register.html")
 
 
-@app.route("/logged/", methods=["POST"] )
+@app.route("/logged/", methods=["POST"])
 def logged():
     # Get log in info from log in form
     user = request.form["username"].lower()
@@ -261,25 +273,27 @@ def logout():
     return redirect("/")
 
 
-@app.route("/register/", methods=["POST"] )
+@app.route("/register/", methods=["POST"])
 def registration():
     # Get info from form
     username = request.form["username"]
     password = request.form["password"]
+    salt_pwd = hash_password(password)
+
     confirm = request.form["confirm"]
     fname = request.form["fname"]
     lname = request.form["lname"]
     email = request.form["email"]
     # See if username already in the database
-    rows = engine.execute( "SELECT * FROM users WHERE username = :username ", username = username )
+    rows = engine.execute("SELECT * FROM users WHERE username = :username ", username=username)
     # If username already exists, alert user
-    if len( rows ) > 0:
-        return render_template ( "new.html", msg="Username already exists!" )
+    if len(list(rows)) > 0:
+        return render_template("register.html", msg="Username already exists!")
     # If new user, upload his/her info into the users database
-    new = engine.execute ( "INSERT INTO users (username, password, fname, lname, email) VALUES (:username, :password, :fname, :lname, :email)",
-                    username=username, password=password, fname=fname, lname=lname, email=email )
+    new = engine.execute("INSERT INTO users (username, password, fname, lname, email) VALUES (:username, :password, :fname, :lname, :email)",
+                        username=username, password=password, fname=fname, lname=lname, email=email)
     # Render login template
-    return render_template ( "login.html" )
+    return render_template("login.html")
 
 
 @app.route("/cart/")
