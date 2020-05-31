@@ -45,15 +45,16 @@ Pesci Inc. Store - Home
                     {% endfor %}
                     <tfoot>
                       <tr>
-                        <td colSpan="7">Total: {{ '${:,.2f}'.format(total) }}<br /><br />
-                          <div class="modal-footer">
-                                <div>
-                                    <input type="text" name="City" autofocus placeholder="City">
-                                    <input type="text" name="Address" placeholder="Address">
-                                </div>
+                        <td colSpan="7">
+                            <br> Delivery: 20$
+                            <br>Total: {{ '${:,.2f}'.format(total) }}
+                          <form class="modal-footer">
                               </form>
-                              <a href="/"><button type="button" class="btn btn-primary checkout">Continue Shopping</button></a>
-                              <a href="/paying/"><button type="button" class="btn btn-success checkout">Pay</button></a>
+                              <form action="/paying" method="post">
+                                  <p><input type="text" name="City" autofocus placeholder="City"></p>
+                                  <p><input type="text" name="Address" placeholder="Address"></p>
+                                  <p><input type="submit" value="Pay"></p>
+                              </form>
                           </div>
                         </td>
                       </tr>
